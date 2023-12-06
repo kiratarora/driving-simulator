@@ -5,6 +5,7 @@ using System.IO;
 
 public class peoplewalking : MonoBehaviour
 {
+    public float dist;
     public float velocity;
     private char direction;
     public float waitTime;
@@ -15,21 +16,22 @@ public class peoplewalking : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        if (dist == 0f){dist = 15f;}
         Vector3 rotationDeg = transform.eulerAngles;
         startVector = transform.position;
         Debug.Log(transform.rotation);
         if(transform.rotation.y == 0f){
-            endVector = new Vector3(transform.position.x,transform.position.y,transform.position.z + 15f);
+            endVector = new Vector3(transform.position.x,transform.position.y,transform.position.z + dist);
         }
         // else if(transform.rotation.y == 1f || transform.rotation.y == -1f){
         else if(Mathf.Approximately(rotationDeg.y, 180f)){
-            endVector = new Vector3(transform.position.x,transform.position.y,transform.position.z - 15f);
+            endVector = new Vector3(transform.position.x,transform.position.y,transform.position.z - dist);
         }
         else if(Mathf.Approximately(rotationDeg.y, 90f)){
-            endVector = new Vector3(transform.position.x + 15f,transform.position.y,transform.position.z);
+            endVector = new Vector3(transform.position.x + dist,transform.position.y,transform.position.z);
         }
         else if(Mathf.Approximately(rotationDeg.y, 270f)){
-            endVector = new Vector3(transform.position.x - 15f,transform.position.y,transform.position.z);
+            endVector = new Vector3(transform.position.x - dist,transform.position.y,transform.position.z);
         }
         animation_controller = GetComponent<Animator>();
         StartCoroutine(MoveAndWait());
