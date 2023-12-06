@@ -8847,7 +8847,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dist: 0
-  velocity: 0.2
+  velocity: 0.1
   waitTime: 7
 --- !u!1001 &475123786
 PrefabInstance:

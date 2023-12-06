@@ -5,25 +5,24 @@ using System.IO;
 
 public class peoplewalking : MonoBehaviour
 {
-    public float dist;
-    public float velocity;
-    private char direction;
-    public float waitTime;
-    private Vector3 startVector;
-    private Vector3 endVector;
-    private Animator animation_controller;
+    public float dist; // Variable to get the distance the character needs to walk
+    public float velocity; // Variable that assigns the velocity to the charter with which it walks
+    public float waitTime; // Wait time variable so that you can set a custom time for the charatcer to walk
+    private Vector3 startVector; // Stores the starting porition of the character
+    private Vector3 endVector; // stores the endpoint vector
+    private Animator animation_controller; // gets the animation controller to edit the walking state of the character
 
     // Start is called before the first frame update
     void Start()
     {
+        // Checks if dist is innitialzed or not, if not, it sets it to 15f
         if (dist == 0f){dist = 15f;}
-        Vector3 rotationDeg = transform.eulerAngles;
-        startVector = transform.position;
-        Debug.Log(transform.rotation);
+        Vector3 rotationDeg = transform.eulerAngles; // Transforming the rotation angle of the character to degerees
+        startVector = transform.position; // Sets the start vector, needed to make the character walk back to this part from the end point
+        // Setting the endpoint vector based on the roration. 
         if(transform.rotation.y == 0f){
             endVector = new Vector3(transform.position.x,transform.position.y,transform.position.z + dist);
         }
-        // else if(transform.rotation.y == 1f || transform.rotation.y == -1f){
         else if(Mathf.Approximately(rotationDeg.y, 180f)){
             endVector = new Vector3(transform.position.x,transform.position.y,transform.position.z - dist);
         }
@@ -33,26 +32,26 @@ public class peoplewalking : MonoBehaviour
         else if(Mathf.Approximately(rotationDeg.y, 270f)){
             endVector = new Vector3(transform.position.x - dist,transform.position.y,transform.position.z);
         }
+        // Getting animation controller to set the values of the state. 
         animation_controller = GetComponent<Animator>();
         StartCoroutine(MoveAndWait());
     }
 
-    IEnumerator MoveAndWait()
+    IEnumerator MoveAndWait() // Function that controlls movement and waiting of the character
     {
         while (true)
         {
-            Debug.Log(animation_controller.GetBool("isStopped"));
 
             // Move to the end vector
             yield return StartCoroutine(MoveToPosition(endVector));
 
             // Rotate the character by 180 degrees in the specified direction
-            RotateCharacter();
+            transform.Rotate(0f, 180f, 0f);
 
             // Set idle animation
             animation_controller.SetBool("isStopped", true);
 
-            // Wait for 2 seconds
+            // Wait for waitTime seconds
             yield return new WaitForSeconds(waitTime);
 
 
@@ -60,12 +59,12 @@ public class peoplewalking : MonoBehaviour
             yield return StartCoroutine(MoveToPosition(startVector));
 
             // Rotate the character by 180 degrees in the specified direction
-            RotateCharacter();
+            transform.Rotate(0f, 180f, 0f);
 
             // Set idle animation
             animation_controller.SetBool("isStopped", true);
             
-            // Wait for 2 seconds
+            // Wait for waitTime seconds
             yield return new WaitForSeconds(waitTime);
         }
     }
@@ -93,6 +92,4 @@ public class peoplewalking : MonoBehaviour
         transform.position = targetPosition;
     }
 
-    // Function to rotate the character by 180 degrees in the specified direction
-    void RotateCharacter(){transform.Rotate(0f, 180f, 0f);}
 }
