@@ -239,4 +239,4 @@ public class CarController : MonoBehaviour
         // Update the text element with the current speed
         speedDisplayText.text = "Speed:\n" + speedMph + " mph";
     }
-}
+} 
