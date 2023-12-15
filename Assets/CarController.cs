@@ -1,22 +1,22 @@
-//Similar to Claire.cs
 /*
-Moves: forward (Up arrow), backward (down arrow), turn right (shift + right arrow, reg/1.5), turn left (shift + left arrow, reg/1.5)
-Accelerate - shift + up (reg * 3)
-Decelerate - shift +down, if done when driving at regular speed, car will come to a gradual stop (reg/2)
-Variables:
-Speed/Velocity
-Animation Controller
-Character controller
-movement direction
-caught
-haswon
-Lives left?
------
-Conditions:
-Stays within bounds of roads
-Will remain stopped at the end of a road unless user presses turn
-Has to stop if caught by police
-Optional stopping for pedestrians crossing
+    Controller: forward (W), backward (S), turn right (A), turn left (D)
+    Acceleration : 
+    Deceleration :
+    Variables:
+        Speed/Velocity
+        Character controller
+        caught
+        has_won
+        num_lives
+    ------------------------------------------------------------------------
+    RULES:
+        Stays within bounds of roads
+        Will remain stopped at the end of a road unless user presses turn
+        Has to stop if caught by police
+        Stop when pedestrians are crossing the road
+        Stop when traffic light is red
+        Do not speed
+        Do not crash into any other objects
 */
 
 using System;
@@ -25,189 +25,178 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
-// public class CarController : MonoBehaviour
-// {
-//     private Animator actrl;
-//     private CharacterController car;
-//     // public Vector3 mvdir;
-//     float c_vel;
-//     public float reg_vel;
-//     public bool caught;
-//     public bool haswon;
-//     bool hasCollided = false;
-//     void Start()
-//     {
-//         car = GetComponent<CharacterController>();
-//     }
-//     void Update()
-//     {
-//         if(!Input.anyKey)
-//         {
-//             c_vel = 0.0f;
-//         }
-//         //Check if the new position is above the maximum allowed vertical position
-//         if (transform.position.y > 0.0f)
-//         {
-//             transform.position = new Vector3(transform.position.x,0.0f,transform.position.z);
-//         }
-
-//         if(Input.GetKey(KeyCode.UpArrow))
-//         {
-//             //Car moves forward
-//             //actrl.SetBool("", true);
-//             if (c_vel < 0) //If character is transitioning from a backwards state - reset c_vel to forward direction (0.0f)
-//             {
-//                 c_vel = 0.0f;   
-//             }
-//             if (c_vel < reg_vel)
-//             {
-//                 c_vel += .5f;
-//             }
-//             else
-//             {
-//                 c_vel = reg_vel; //Limit the velocity to the walking_velocity when reached
-//             }
-            
-//             //Accelerate
-//             if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-//             {
-//                 if (c_vel < reg_vel * 3.0f)
-//                 {
-//                     c_vel += .8f;
-//                 }
-//                 else
-//                 {
-//                     c_vel = reg_vel * 4.0f;
-//                     Debug.Log("Full speed");
-//                 }
-//             }
-//             car.Move(transform.forward * c_vel * Time.deltaTime);
-//             //Letting go of space will abruptly revert back to regular velocity
-//         }
-//         else if (Input.GetKey(KeyCode.DownArrow))
-//         {
-//             //Reverse Car
-//             //actrl.SetBool("", true);
-//             if (Mathf.Abs(c_vel) < Mathf.Abs(reg_vel/1.5f))
-//             {
-//                 c_vel = -(Mathf.Abs(c_vel) + .3f);
-//             }
-//             else
-//             {
-//                 c_vel = -(reg_vel/1.5f); //Limit the velocity to the walking_velocity/1.5 when reached
-//             }
-
-//             if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-//             {
-//                 if (c_vel > reg_vel/1.5f)
-//                 {
-//                     c_vel -= .3f;
-//                 }
-//                 else
-//                 {
-//                     c_vel = reg_vel/1.5f;
-//                 }
-//             }
-//             car.Move(transform.forward * c_vel * Time.deltaTime);
-//         }
-//         else
-//         {
-//             //Car is stopped
-//         }
-
-//         //Turning
-//         if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.LeftArrow))
-//         {
-//             //actrl.SetBool("", true);
-//             float rtnIn = Input.GetAxis("Horizontal"); //Rotational Input, -1 - left, 1 - right
-
-//             // Rotate the character based on input
-//             Vector3 rotation = Vector3.up * rtnIn * 60.0f * Time.deltaTime;
-//             transform.Rotate(rotation);
-
-//             if ((Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift)))
-//             {
-//                 if(c_vel < 0.0f)
-//                 {
-//                     c_vel = 0.0f;
-//                 }
-//                 if(c_vel <  reg_vel * 2.0f)
-//                 {
-//                     c_vel += 0.8f;
-//                 }
-//                 else
-//                 {
-//                     c_vel =reg_vel * 2.0f;
-//                 }
-//                 car.Move(transform.forward * c_vel * Time.deltaTime);
-//             }
-//         }
-//     }
-//     void OnCollisionEnter(Collision collision)
-//     {
-//         string obj = collision.gameObject.name;
-//         if (obj != "MainCar")
-//         {
-//             Debug.Log("Collided with "+obj);
-//             hasCollided = true;
-//         }
-//         // Check for collisions with other objects
-//         if (obj.StartsWith("elder"))
-//         {
-//             // Handle collision with a pedestrian
-//             Debug.Log("Pedestrian Hit");
-//         }
-//         if (obj.StartsWith("Road Concrete")|| obj.StartsWith("Building") || obj.StartsWith("Props"))
-//         {
-//             // Handle collision with buildings/props
-//             Debug.Log("Off road");
-//         }
-//     }
-// }
+using Random = UnityEngine.Random;
+using TMPro;
 
 public class CarController : MonoBehaviour
 {
-    private CharacterController car;
+    // private Animator animation_controller;
+    private CharacterController car; // The car controller
+    public Button PlayAgainButton; // This is the button that will be clicked to play again the same level
+    public Button TryAgainButton; // This is the button that will be clicked to play again the same level
     public float acceleration = 5.0f;
+    private const float SpeedLimit = 40.0f / 2.237f; // 40 mph converted to Unity units, if necessary
     public float turnSpeed = 60.0f;
     public float driftTurnSpeedMultiplier = 1.5f; // Multiplier for turn speed during drift
-    public float topSpeed = 60.0f;
-    private float currentSpeed = 0.0f;
-    private float currentTurn = 0.0f;
-    private float originalYPosition;
+    public float topSpeed = 60.0f; // Maximum speed of the car in mph
+    private float currentSpeed = 0.0f; // Current speed of the car
+    private float currentTurn = 0.0f; // Current turn speed
+    private float originalYPosition; // The original y position of the car
+    public static int? levelSeed = null; // Seed for random number generation
+    public int num_lives; // Number of lives the player has
+    public bool has_won; // True if the player has won the game
+    public TMP_Text text;  // Text to display the number of lives
+    public TMP_Text speedDisplayText; // Text to display the speed of the car
+    private bool currentHasLostLifeForSpeeding = false;
 
     void Start()
     {
+        if (!levelSeed.HasValue)
+        {
+            levelSeed = Random.Range(int.MinValue, int.MaxValue);
+        }
+        // Use the seed for random number generation
+        Random.InitState(levelSeed.Value);
+
+        // animation_controller = GetComponent<Animator>();
         car = GetComponent<CharacterController>();
         originalYPosition = transform.position.y;
+        num_lives = 5;
+        has_won = false;
+        PlayAgainButton.gameObject.SetActive(false);
+        TryAgainButton.gameObject.SetActive(false);
+        
+        // Generate the new endpoint for the car
+        // GenerateNewEndpoint();
+
+        // Set the state of the player
     }
 
     void Update()
     {
+        GameLogic();
         HandleMovement();
         HandleTurning();
         ApplyMovement();
         MaintainCarHeight();
+        UpdateSpeedDisplay();
+
+        if (currentSpeed > SpeedLimit && !currentHasLostLifeForSpeeding)
+        {
+            LoseLife();
+            currentHasLostLifeForSpeeding = true; // Set the flag to true
+        }
+        // Reset the flag when speed is below the limit
+        else if (currentSpeed <= SpeedLimit)
+        {
+            currentHasLostLifeForSpeeding = false;
+        }
+    }
+
+    private void GenerateNewEndpoint()
+    {
+        // Example of setting a random seed
+        Random.InitState((int)System.DateTime.Now.Ticks);
+
+        // Now generate the new endpoint for the car
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // Call LoseLife when the car collides with another object
+        LoseLife();
+    }
+
+    void LoseLife()
+    {
+        // Reduce the number of lives
+        num_lives--;
+
+        // Check if the number of lives is less than or equal to 0
+        if (num_lives <= 0)
+        {
+            // Handle game over scenario
+            // For example, display a game over message, stop the game, etc.
+        }
+    }
+
+
+    private void GameLogic()
+    {
+        text.text = "Lives left: " + num_lives;
+
+        ////////////////////////////////////////////////
+
+        if (has_won) {
+            text.text = "You won!";
+            text.color = Color.green;
+            // animation_controller.SetInteger("state", 0);
+            currentSpeed = 0.0f;
+            PlayAgainButton.gameObject.SetActive(true);
+            PlayAgainButton.onClick.RemoveAllListeners();
+            PlayAgainButton.onClick.AddListener(PlayGame);
+            return;
+        }
+
+        if (num_lives <= 0) {
+            text.text = "You have lost the game!";
+            text.color = Color.red;
+            // animation_controller.SetBool("death", true);
+            // animation_controller.SetInteger("state", 7);
+            currentSpeed = 0.0f;
+            TryAgainButton.gameObject.SetActive(true);
+            TryAgainButton.onClick.RemoveAllListeners();
+            TryAgainButton.onClick.AddListener(TryLevelAgain);
+            return;
+        }
+    }
+
+    void PlayGame()
+    {
+        // levelSeed = null;
+        Debug.Log("Loading game with new endpoint and seed");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    void TryLevelAgain()
+    {
+        Debug.Log("Loading game with same endpoint and seed");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     void HandleMovement()
     {
-        if (Input.GetKey(KeyCode.UpArrow))
+        // Define the lower speed limit
+        float lowerTopSpeed = 40.0f / 2.237f; // Convert 40 mph to Unity units (if necessary)
+        float effectiveTopSpeed = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) ? topSpeed / 2.237f : lowerTopSpeed;
+
+        // Basic forward and backward movement
+        if (Input.GetKey(KeyCode.W))
         {
             currentSpeed += Time.deltaTime * acceleration;
         }
-        else if (Input.GetKey(KeyCode.DownArrow))
+        else if (Input.GetKey(KeyCode.S))
         {
+            // Apply the same logic for reverse speed if needed
             currentSpeed -= Time.deltaTime * acceleration;
         }
-        else
+
+        // Braking with space bar
+        if (Input.GetKey(KeyCode.Space) && currentSpeed > 0)
         {
-            currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime * 2);
+            // Apply a stronger negative acceleration (braking force)
+            currentSpeed -= Time.deltaTime * acceleration * 5;
+            currentSpeed = Mathf.Max(currentSpeed, 0); // Prevent the car from reversing
         }
 
-        float topSpeedUnity = topSpeed / 2.237f;
-        currentSpeed = Mathf.Clamp(currentSpeed, -topSpeedUnity, topSpeedUnity);
+        // Gradual deceleration when not accelerating or braking
+        if (!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift) && !Input.GetKey(KeyCode.Space))
+        {
+            currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime);
+        }
+
+        // Limiting the speed based on whether Shift is pressed
+        currentSpeed = Mathf.Clamp(currentSpeed, 0, effectiveTopSpeed);
     }
 
     void HandleTurning()
@@ -215,11 +204,11 @@ public class CarController : MonoBehaviour
         float speedMph = currentSpeed * 2.237f;
         float turnMultiplier = (speedMph >= 45) ? driftTurnSpeedMultiplier : 1.0f;
 
-        if (Input.GetKey(KeyCode.RightArrow))
+        if (Input.GetKey(KeyCode.D))
         {
             currentTurn = turnSpeed * turnMultiplier;
         }
-        else if (Input.GetKey(KeyCode.LeftArrow))
+        else if (Input.GetKey(KeyCode.A))
         {
             currentTurn = -turnSpeed * turnMultiplier;
         }
@@ -241,5 +230,13 @@ public class CarController : MonoBehaviour
         {
             transform.position = new Vector3(transform.position.x, originalYPosition, transform.position.z);
         }
+    }
+
+    void UpdateSpeedDisplay()
+    {
+        // Convert the speed from Unity units to mph
+        int speedMph = Mathf.RoundToInt(currentSpeed * 2.237f);
+        // Update the text element with the current speed
+        speedDisplayText.text = "Speed:\n" + speedMph + " mph";
     }
 }

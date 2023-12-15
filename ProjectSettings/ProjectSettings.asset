@@ -748,11 +748,11 @@ PlayerSettings:
   apiCompatibilityLevel: 6
   activeInputHandler: 0
   windowsGamepadBackendHint: 0
-  cloudProjectId: 43969e41-6b58-4b86-ad6d-ceb96e3a8432
+  cloudProjectId: 5c5dba61-72fe-4f0e-b2e2-40a517880431
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: FInal Project
-  organizationId: kiratarora007
+  projectName: colliders-speeding-lives
+  organizationId: vedant_bajaj14
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0
   hmiLoadingImage: {fileID: 0}
