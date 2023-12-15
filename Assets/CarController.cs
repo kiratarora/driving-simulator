@@ -39,7 +39,7 @@ public class CarController : MonoBehaviour
     public float turnSpeed = 60.0f;
     public float driftTurnSpeedMultiplier = 1.5f; // Multiplier for turn speed during drift
     public float topSpeed = 60.0f; // Maximum speed of the car in mph
-    private float currentSpeed = 0.0f; // Current speed of the car
+    public float currentVelocity = 0.0f; // Current speed of the car
     private float currentTurn = 0.0f; // Current turn speed
     private float originalYPosition; // The original y position of the car
     public static int? levelSeed = null; // Seed for random number generation
@@ -81,13 +81,13 @@ public class CarController : MonoBehaviour
         MaintainCarHeight();
         UpdateSpeedDisplay();
 
-        if (currentSpeed > SpeedLimit && !currentHasLostLifeForSpeeding)
+        if (currentVelocity > SpeedLimit && !currentHasLostLifeForSpeeding)
         {
             LoseLife();
             currentHasLostLifeForSpeeding = true; // Set the flag to true
         }
         // Reset the flag when speed is below the limit
-        else if (currentSpeed <= SpeedLimit)
+        else if (currentVelocity <= SpeedLimit)
         {
             currentHasLostLifeForSpeeding = false;
         }
@@ -104,6 +104,11 @@ public class CarController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         // Call LoseLife when the car collides with another object
+        Debug.Log(collision.gameObject.name);
+        if (collision.gameObject.name.Contains("Female") || collision.gameObject.name.Contains("Male"))
+        {
+            Debug.Log("Hit a pedestrian!");
+        }
         LoseLife();
     }
 
@@ -115,8 +120,8 @@ public class CarController : MonoBehaviour
         // Check if the number of lives is less than or equal to 0
         if (num_lives <= 0)
         {
-            // Handle game over scenario
-            // For example, display a game over message, stop the game, etc.
+            // Game over scenario
+            GameLogic();
         }
     }
 
@@ -131,7 +136,7 @@ public class CarController : MonoBehaviour
             text.text = "You won!";
             text.color = Color.green;
             // animation_controller.SetInteger("state", 0);
-            currentSpeed = 0.0f;
+            currentVelocity = 0.0f;
             PlayAgainButton.gameObject.SetActive(true);
             PlayAgainButton.onClick.RemoveAllListeners();
             PlayAgainButton.onClick.AddListener(PlayGame);
@@ -143,7 +148,7 @@ public class CarController : MonoBehaviour
             text.color = Color.red;
             // animation_controller.SetBool("death", true);
             // animation_controller.SetInteger("state", 7);
-            currentSpeed = 0.0f;
+            currentVelocity = 0.0f;
             TryAgainButton.gameObject.SetActive(true);
             TryAgainButton.onClick.RemoveAllListeners();
             TryAgainButton.onClick.AddListener(TryLevelAgain);
@@ -173,35 +178,46 @@ public class CarController : MonoBehaviour
         // Basic forward and backward movement
         if (Input.GetKey(KeyCode.W))
         {
-            currentSpeed += Time.deltaTime * acceleration;
+            currentVelocity += Time.deltaTime * acceleration;
         }
         else if (Input.GetKey(KeyCode.S))
         {
             // Apply the same logic for reverse speed if needed
-            currentSpeed -= Time.deltaTime * acceleration;
+            //currentSpeed -= Time.deltaTime * acceleration;
+            //Changed 
+            currentVelocity = -(Mathf.Abs(currentVelocity) + Time.deltaTime * acceleration);
         }
 
         // Braking with space bar
-        if (Input.GetKey(KeyCode.Space) && currentSpeed > 0)
+        if (Input.GetKey(KeyCode.Space))
         {
             // Apply a stronger negative acceleration (braking force)
-            currentSpeed -= Time.deltaTime * acceleration * 5;
-            currentSpeed = Mathf.Max(currentSpeed, 0); // Prevent the car from reversing
+            if (currentVelocity > 0 && currentVelocity < effectiveTopSpeed)
+            {
+                //Car moving in forward direction
+                currentVelocity -= Time.deltaTime * acceleration * 5;
+                currentVelocity = Mathf.Max(currentVelocity, 0); // Prevent the car from reversing  
+            }
+            if (currentVelocity < 0 && currentVelocity > -effectiveTopSpeed)
+            {
+                //Car is reversing
+                currentVelocity = 0; //Just stop - brake;
+            }
         }
 
         // Gradual deceleration when not accelerating or braking
         if (!Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.RightShift) && !Input.GetKey(KeyCode.Space))
         {
-            currentSpeed = Mathf.Lerp(currentSpeed, 0, Time.deltaTime);
+            currentVelocity = Mathf.Lerp(currentVelocity, 0, Time.deltaTime);
         }
 
         // Limiting the speed based on whether Shift is pressed
-        currentSpeed = Mathf.Clamp(currentSpeed, 0, effectiveTopSpeed);
+        currentVelocity = Mathf.Clamp(currentVelocity, -effectiveTopSpeed, effectiveTopSpeed);
     }
 
     void HandleTurning()
     {
-        float speedMph = currentSpeed * 2.237f;
+        float speedMph = currentVelocity * 2.237f;
         float turnMultiplier = (speedMph >= 45) ? driftTurnSpeedMultiplier : 1.0f;
 
         if (Input.GetKey(KeyCode.D))
@@ -221,7 +237,7 @@ public class CarController : MonoBehaviour
     void ApplyMovement()
     {
         transform.Rotate(0, currentTurn * Time.deltaTime, 0);
-        car.Move(transform.forward * currentSpeed * Time.deltaTime);
+        car.Move(transform.forward * currentVelocity * Time.deltaTime);
     }
 
     void MaintainCarHeight()
@@ -235,8 +251,8 @@ public class CarController : MonoBehaviour
     void UpdateSpeedDisplay()
     {
         // Convert the speed from Unity units to mph
-        int speedMph = Mathf.RoundToInt(currentSpeed * 2.237f);
+        int speedMph = Mathf.RoundToInt(currentVelocity * 2.237f);
         // Update the text element with the current speed
         speedDisplayText.text = "Speed:\n" + speedMph + " mph";
     }
-} 
+}
