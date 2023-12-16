@@ -183,9 +183,9 @@ public class CarController : MonoBehaviour
         else if (Input.GetKey(KeyCode.S))
         {
             // Apply the same logic for reverse speed if needed
-            //currentSpeed -= Time.deltaTime * acceleration;
+            currentVelocity -= Time.deltaTime * acceleration;
             //Changed 
-            currentVelocity = -(Mathf.Abs(currentVelocity) + Time.deltaTime * acceleration);
+            // currentVelocity = -(Mathf.Abs(currentVelocity) + Time.deltaTime * acceleration);
         }
 
         // Braking with space bar

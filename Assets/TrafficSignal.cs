@@ -1,8 +1,11 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using System.IO;
 
 public class TrafficSignal : MonoBehaviour
 {
-    public float detectionRadius = 8f;
+    public float detectionRadius = 10f;
     public GameObject redLight;
     public GameObject greenLight;
 
@@ -17,6 +20,7 @@ public class TrafficSignal : MonoBehaviour
 
     void Start()
     {
+        detectionRadius = 10f;
         GameObject car_obj = GameObject.FindGameObjectWithTag("Player");
         car = car_obj.GetComponent<CarController>();
         // num_lives = car.num_lives;
@@ -45,11 +49,11 @@ public class TrafficSignal : MonoBehaviour
             if (count == 1)
             {
                 SwitchLights(); // Start traffic control
-                broke_signal = false;
+                // broke_signal = false;
             }
             timeSinceDetection += Time.deltaTime;
             Debug.Log(timeSinceDetection);
-            if (timeSinceDetection >= 30f) //
+            if (timeSinceDetection >=5.0f) //
             {
                 // Change to green after 1 minute
                 Debug.Log("Switched");
