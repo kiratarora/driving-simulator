@@ -49,6 +49,16 @@ public class CarController : MonoBehaviour
     public TMP_Text speedDisplayText; // Text to display the speed of the car
     private bool currentHasLostLifeForSpeeding = false;
 
+    private AudioSource source;
+    public AudioClip brake;
+    public AudioClip horn;
+    public AudioClip police;
+    public AudioClip driving;
+    public AudioClip gameOverSound;
+    public AudioClip winSound;
+    public bool pl_played = false;
+    public bool pl_chasing = false;
+
     void Start()
     {
         if (!levelSeed.HasValue)
@@ -65,7 +75,7 @@ public class CarController : MonoBehaviour
         has_won = false;
         PlayAgainButton.gameObject.SetActive(false);
         TryAgainButton.gameObject.SetActive(false);
-        
+        source = GetComponent<AudioSource>();
         // Generate the new endpoint for the car
         // GenerateNewEndpoint();
 
@@ -74,6 +84,11 @@ public class CarController : MonoBehaviour
 
     void Update()
     {
+        if (currentVelocity >= SpeedLimit/2.0f && !pl_chasing)
+        {
+            source.PlayOneShot(driving);           
+            Debug.Log("Driving"); 
+        }
         GameLogic();
         HandleMovement();
         HandleTurning();
@@ -106,10 +121,11 @@ public class CarController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         // Call LoseLife when the car collides with another object
-        Debug.Log(collision.gameObject.name);
+        Debug.Log("Collided with "+collision.gameObject.name);
         if (collision.gameObject.name.Contains("Female") || collision.gameObject.name.Contains("Male"))
         {
             Debug.Log("Hit a pedestrian!");
+            source.PlayOneShot(horn);
         }
         LoseLife();
     }
@@ -118,7 +134,6 @@ public class CarController : MonoBehaviour
     {
         // Reduce the number of lives
         num_lives--;
-
         // Check if the number of lives is less than or equal to 0
         if (num_lives <= 0)
         {
@@ -142,6 +157,7 @@ public class CarController : MonoBehaviour
             PlayAgainButton.gameObject.SetActive(true);
             PlayAgainButton.onClick.RemoveAllListeners();
             PlayAgainButton.onClick.AddListener(PlayGame);
+            source.PlayOneShot(winSound);
             return;
         }
 
@@ -154,6 +170,7 @@ public class CarController : MonoBehaviour
             TryAgainButton.gameObject.SetActive(true);
             TryAgainButton.onClick.RemoveAllListeners();
             TryAgainButton.onClick.AddListener(TryLevelAgain);
+            source.PlayOneShot(gameOverSound);
             return;
         }
     }
@@ -193,6 +210,7 @@ public class CarController : MonoBehaviour
         // Braking with space bar
         if (Input.GetKey(KeyCode.Space))
         {
+            source.PlayOneShot(brake);
             // Apply a stronger negative acceleration (braking force)
             if (currentVelocity > 0 && currentVelocity < effectiveTopSpeed)
             {
@@ -306,10 +324,16 @@ public class CarController : MonoBehaviour
     void TriggerChase()
     {
         GameObject copCar = GameObject.FindGameObjectWithTag("CopCar"); // Ensure the cop car has a tag "CopCar"
+        pl_chasing = true;
         if (copCar != null)
         {
             Vector3 playerCarPosition = transform.position;
             TriggerCopCarChase(copCar, playerCarPosition);
+            if (!pl_played)
+            {
+                Debug.Log("Playing Police Sounds");
+                source.PlayOneShot(police);
+            }
         }
     }
 
