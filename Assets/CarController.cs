@@ -58,6 +58,8 @@ public class CarController : MonoBehaviour
     public AudioClip winSound;
     public bool pl_played = false;
     public bool pl_chasing = false;
+    public GameObject finishZonePrefab;
+    private GameObject currentFinishZone;
 
     void Start()
     {
@@ -76,10 +78,19 @@ public class CarController : MonoBehaviour
         PlayAgainButton.gameObject.SetActive(false);
         TryAgainButton.gameObject.SetActive(false);
         source = GetComponent<AudioSource>();
-        // Generate the new endpoint for the car
-        // GenerateNewEndpoint();
 
-        // Set the state of the player
+        // Randomly select and place a finish zone
+        Vector3[] possibleFinishZones = new Vector3[]
+        {
+            new Vector3(120, 0, 160),
+            new Vector3(240, 0, 60),
+            new Vector3(0, 0, 0)
+        };
+
+        int randomIndex = Random.Range(0, possibleFinishZones.Length);
+        Vector3 finishZonePosition = possibleFinishZones[randomIndex];
+        CreateFinishZone(finishZonePosition);
+        Debug.Log("Finish zone position: " + finishZonePosition);
     }
 
     void Update()
@@ -108,6 +119,44 @@ public class CarController : MonoBehaviour
         {
             currentHasLostLifeForSpeeding = false;
         }
+        // Check if car is within a certain radius of the finish zone
+        float finishZoneRadius = 5f; // Radius to check
+        if (Vector3.Distance(transform.position, currentFinishZone.transform.position) <= finishZoneRadius)
+        {
+            FinishZoneReached();
+            has_won = true;
+            GameLogic();
+        }
+    }
+
+    private void FinishZoneReached()
+    {
+        // Change finish zone color to green
+        Renderer finishZoneRenderer = currentFinishZone.GetComponent<Renderer>();
+        if (finishZoneRenderer != null)
+        {
+            finishZoneRenderer.material.color = Color.green;
+        }
+
+        // Handle logic when the finish zone is reached (e.g., winning the game)
+        Debug.Log("Finish zone reached!");
+    }
+
+    private void CreateFinishZone(Vector3 position)
+    {
+        currentFinishZone = Instantiate(finishZonePrefab, position, Quaternion.identity);
+
+        // Add a red light above the finish zone
+        GameObject lightGameObject = new GameObject("FinishZoneLight");
+        Light lightComp = lightGameObject.AddComponent<Light>();
+        lightComp.color = Color.red;
+        lightComp.type = LightType.Point;
+        lightComp.range = 10f;
+        lightComp.intensity = 15.0f;
+
+        // Position the light above the finish zone
+        lightGameObject.transform.position = position + new Vector3(0, 5, 0);
+        lightGameObject.transform.parent = currentFinishZone.transform; // Optional: Make the light a child of the finish zone
     }
 
     private void GenerateNewEndpoint()
@@ -121,7 +170,7 @@ public class CarController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         // Call LoseLife when the car collides with another object
-        Debug.Log("Collided with "+collision.gameObject.name);
+        // Debug.Log("Collided with "+collision.gameObject.name);
         if (collision.gameObject.name.Contains("Female") || collision.gameObject.name.Contains("Male"))
         {
             Debug.Log("Hit a pedestrian!");
@@ -152,7 +201,6 @@ public class CarController : MonoBehaviour
         if (has_won) {
             text.text = "You won!";
             text.color = Color.green;
-            // animation_controller.SetInteger("state", 0);
             currentVelocity = 0.0f;
             PlayAgainButton.gameObject.SetActive(true);
             PlayAgainButton.onClick.RemoveAllListeners();
@@ -164,8 +212,6 @@ public class CarController : MonoBehaviour
         if (num_lives <= 0) {
             text.text = "You have lost the game!";
             text.color = Color.red;
-            // animation_controller.SetBool("death", true);
-            // animation_controller.SetInteger("state", 7);
             currentVelocity = 0.0f;
             TryAgainButton.gameObject.SetActive(true);
             TryAgainButton.onClick.RemoveAllListeners();
@@ -177,7 +223,7 @@ public class CarController : MonoBehaviour
 
     void PlayGame()
     {
-        // levelSeed = null;
+        levelSeed = null;
         Debug.Log("Loading game with new endpoint and seed");
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
