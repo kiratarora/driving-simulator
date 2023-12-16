@@ -48,7 +48,6 @@ public class CarController : MonoBehaviour
     public TMP_Text text;  // Text to display the number of lives
     public TMP_Text speedDisplayText; // Text to display the speed of the car
     private bool currentHasLostLifeForSpeeding = false;
-
     private AudioSource source;
     public AudioClip brake;
     public AudioClip horn;
@@ -60,6 +59,8 @@ public class CarController : MonoBehaviour
     public bool pl_chasing = false;
     public GameObject finishZonePrefab;
     private GameObject currentFinishZone;
+    public GameObject policeCar;
+    public TMP_Text lawBroken; // Text to display law is broken
 
     void Start()
     {
@@ -77,6 +78,7 @@ public class CarController : MonoBehaviour
         has_won = false;
         PlayAgainButton.gameObject.SetActive(false);
         TryAgainButton.gameObject.SetActive(false);
+        lawBroken.gameObject.SetActive(false);
         source = GetComponent<AudioSource>();
 
         // Randomly select and place a finish zone
@@ -111,7 +113,9 @@ public class CarController : MonoBehaviour
         {
             LoseLife();
             currentHasLostLifeForSpeeding = true; // Set the flag to true
-
+            lawBroken.text = "You are speeding, you have lost a life!";
+            lawBroken.color = Color.blue;
+            lawBroken.gameObject.SetActive(true);
             // Trigger the cop car chase
             TriggerChase();
         }
@@ -171,9 +175,13 @@ public class CarController : MonoBehaviour
     {
         // Call LoseLife when the car collides with another object
         // Debug.Log("Collided with "+collision.gameObject.name);
-        if (collision.gameObject.name.Contains("Female") || collision.gameObject.name.Contains("Male"))
+        if (collision.gameObject.name.Contains("Female") || collision.gameObject.name.Contains("Male") || collision.gameObject.name.Contains("boy"))
         {
-            Debug.Log("Hit a pedestrian!");
+            lawBroken.text = "You have hit a pedestrian, POLICE IS CHASING!";
+            lawBroken.color = Color.red;
+            lawBroken.gameObject.SetActive(true);
+            policeCar.GetComponent<copCar>().lawsBroken = true;
+            Debug.Log("Hit a pedestrian, police is chasing you!");
             source.PlayOneShot(horn);
         }
         LoseLife();

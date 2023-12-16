@@ -52,11 +52,11 @@ public class TrafficSignal : MonoBehaviour
                 // broke_signal = false;
             }
             timeSinceDetection += Time.deltaTime;
-            Debug.Log(timeSinceDetection);
+            // Debug.Log(timeSinceDetection);
             if (timeSinceDetection >=5.0f) //
             {
                 // Change to green after 1 minute
-                Debug.Log("Switched");
+                // Debug.Log("Switched");
                 SwitchLights();
                 timeSinceDetection = 0.0f; //Reset every 1/2 min. - keep looping lights
             }
@@ -79,7 +79,7 @@ public class TrafficSignal : MonoBehaviour
     {
         if(isRed)
         {
-            Debug.Log("Red to Green");
+            // Debug.Log("Red to Green");
             redLight.SetActive(false);
             greenLight.SetActive(true);
             isGreen = true;
@@ -96,7 +96,7 @@ public class TrafficSignal : MonoBehaviour
         }
        if(isGreen)
        {
-            Debug.Log("Green to Red");
+            // Debug.Log("Green to Red");
             redLight.SetActive(true);
             greenLight.SetActive(false);
             isGreen = false;

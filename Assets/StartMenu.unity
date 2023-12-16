@@ -161,10 +161,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Hello! Welcome to the Drving Simulator! \n\nThis game will test your driving
-    skills and \nability to adhere to strict rules.\nUse Arrow Keys to drive the
-    car. While\nfollowing traffic rules, safely reach from the\nstart to the end
-    zone.\n\nTo start playing click on the 'Start' button."
+  m_text: "Hello! Welcome to the Drving Simulator! \nThis game will test your driving
+    skills and \nability to adhere to strict rules.\nUse W,A,S,D Keys to drive the
+    car, space to break, shift to \naccelerate with W. While following traffic rules,
+    \nsafely find and reach from the start to the end zone.\nIf you hit a pedestrian,
+    cops will chase you!\nReach the goal before they catch up."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
