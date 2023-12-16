@@ -85,8 +85,10 @@ public class CarController : MonoBehaviour
         {
             LoseLife();
             currentHasLostLifeForSpeeding = true; // Set the flag to true
+
+            // Trigger the cop car chase
+            TriggerChase();
         }
-        // Reset the flag when speed is below the limit
         else if (currentVelocity <= SpeedLimit)
         {
             currentHasLostLifeForSpeeding = false;
@@ -255,4 +257,139 @@ public class CarController : MonoBehaviour
         // Update the text element with the current speed
         speedDisplayText.text = "Speed:\n" + speedMph + " mph";
     }
+
+
+    public List<RoadNode> BuildRoadGraph(float connectionThreshold)
+    {
+        List<RoadNode> roadNodes = new List<RoadNode>();
+        GameObject[] roadObjects = GameObject.FindGameObjectsWithTag("Road");
+        // Create nodes for each road object
+        foreach (var roadObject in roadObjects)
+        {
+            if (roadObject.name.Contains("Lane") || roadObject.name.Contains("Intersection"))
+            {
+                RoadNode node = new RoadNode(roadObject.transform.position);
+                roadNodes.Add(node);
+            }
+        }
+        // Connect nodes based on proximity
+        foreach (var node in roadNodes)
+        {
+            foreach (var otherNode in roadNodes)
+            {
+                if (node != otherNode && Vector3.Distance(node.position, otherNode.position) <= connectionThreshold)
+                {
+                    node.neighbors.Add(otherNode);
+                }
+            }
+        }
+        return roadNodes;
+    }
+
+
+    private RoadNode FindClosestNode(Vector3 position, List<RoadNode> roadNodes)
+    {
+        RoadNode closestNode = null;
+        float minDistance = float.MaxValue;
+        foreach (var node in roadNodes)
+        {
+            float distance = Vector3.Distance(position, node.position);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestNode = node;
+            }
+        }
+        return closestNode;
+    }
+
+    void TriggerChase()
+    {
+        GameObject copCar = GameObject.FindGameObjectWithTag("CopCar"); // Ensure the cop car has a tag "CopCar"
+        if (copCar != null)
+        {
+            Vector3 playerCarPosition = transform.position;
+            TriggerCopCarChase(copCar, playerCarPosition);
+        }
+    }
+
+
+    // Method to trigger the cop car chase
+    public void TriggerCopCarChase(GameObject copCar, Vector3 playerCarPosition)
+    {
+        float connectionThreshold = 10f; // Set a suitable threshold for connecting nodes
+        List<RoadNode> roadGraph = BuildRoadGraph(connectionThreshold);
+
+        RoadNode startNode = FindClosestNode(copCar.transform.position, roadGraph);
+        RoadNode targetNode = FindClosestNode(playerCarPosition, roadGraph);
+
+        List<RoadNode> path = PathfindingAlgorithm.FindPath(startNode, targetNode, roadGraph);
+        // Now, path contains the nodes from the cop car to the player's car
+        // Set the path for the cop car
+        copCar.GetComponent<CopCarController>().SetPath(path);
+    }
+
+    public class PathfindingAlgorithm
+    {
+        public static List<RoadNode> FindPath(RoadNode start, RoadNode end, List<RoadNode> roadGraph)
+        {
+            var openSet = new List<RoadNode>();
+            var closedSet = new HashSet<RoadNode>();
+            start.gScore = 0;
+            start.hScore = Heuristic(start, end);
+            openSet.Add(start);
+
+            while (openSet.Count > 0)
+            {
+                RoadNode current = openSet[0];
+                foreach (var node in openSet)
+                {
+                    if (node.fScore < current.fScore)
+                        current = node;
+                }
+
+                if (current == end)
+                    return ReconstructPath(end);
+
+                openSet.Remove(current);
+                closedSet.Add(current);
+
+                foreach (var neighbor in current.neighbors)
+                {
+                    if (closedSet.Contains(neighbor))
+                        continue;
+
+                    float tentativeGScore = current.gScore + Vector3.Distance(current.position, neighbor.position);
+                    if (tentativeGScore < neighbor.gScore)
+                    {
+                        neighbor.parent = current;
+                        neighbor.gScore = tentativeGScore;
+                        neighbor.hScore = Heuristic(neighbor, end);
+                        if (!openSet.Contains(neighbor))
+                            openSet.Add(neighbor);
+                    }
+                }
+            }
+
+            return new List<RoadNode>(); // Path not found
+        }
+
+        private static float Heuristic(RoadNode node, RoadNode end)
+        {
+            return Vector3.Distance(node.position, end.position);
+        }
+
+        private static List<RoadNode> ReconstructPath(RoadNode end)
+        {
+            List<RoadNode> path = new List<RoadNode>();
+            while (end != null)
+            {
+                path.Add(end);
+                end = end.parent;
+            }
+            path.Reverse();
+            return path;
+        }
+    }
+
 }
